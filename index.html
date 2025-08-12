@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Pikmin Direction Calculator</title>
+	<style>
+		/* CSSを書くところ */
+		.relative{
+			position: relative;
+			z-index: 1;
+		}
+		.absolute{
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			z-index: 2;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Pikmin direction calculator</h1>
+	<b>View</b>
+	<label><input type="radio" name="view" value=0 onclick="clicked();" checked>Quarter</label>
+	<label><input type="radio" name="view" value=1 onclick="clicked();">Top</label>
+	<br>
+	<b>Zoom</b>
+	<label><input type="radio" name="zoom" value=0 onclick="clicked();">Close</label>
+	<label><input type="radio" name="zoom" value=1 onclick="clicked();" checked>Normal</label>
+	<label><input type="radio" name="zoom" value=2 onclick="clicked();">Far</label>
+	<br>
+	<div id="dep">Camera depression angle: 21</div>
+	<br>
+	<b>Camera direction</b>
+    <input id="input" value="0" oninput="editChanged()">
+	<input id="slide" type="range" value="0" max="180" min="-180" step="0.1" oninput="sliderChanged()">
+	<br><br>
+	<div id="gap">Difference between pad input and movement direction: 0</div>
+
+	<br><br>
+
+	<img id="pink" src="direct_transparent.png">
+	<br><br><br>
+	<div class="relative">
+		<img id="gray" src="gray_transparent.png" class="relative">
+		<img id="blue" src="blue_transparent.png" class="absolute">
+	</div>
+	<h2>Reference</h2>
+	<a href="https://pikmintkb.com/wiki/Pikmin_camera_parameters">Pikmin camera parameters - Pikmin Technical Knowledge Base</a>
+
+	<!-- 実際に表示される領域 -->
+	<script>
+		// JavaScriptを書くところ
+		var view = 0;
+		var zoom = 1;
+		var cameraAngle = 0;
+		var moveAngle = 0;
+		var depAngle = 21;
+
+        function clicked(){
+			radioClicked();
+
+			img2 = document.getElementById("pink");
+			img2.style.transform = "rotate(" + cameraAngle + "deg)";
+			img3 = document.getElementById("blue");
+			img3.style.transform = "rotate(" + moveAngle + "deg)";
+        }
+		function editChanged(){
+            const input = document.getElementById("input");
+			const slide = document.getElementById("slide");
+
+			cameraAngle = parseFloat(input.value) || 0;
+			slide.value = cameraAngle;
+
+			clicked();
+		}
+		function sliderChanged(){
+            const input = document.getElementById("input");
+			const slide = document.getElementById("slide");
+
+			cameraAngle = slide.value;
+			input.value = cameraAngle;
+
+			clicked();
+		}
+		function radioClicked(){
+			const views = document.getElementsByName("view");
+			let len = views.length;
+			for(let i=0; i<len; i++){
+				if(views.item(i).checked){
+					view = views.item(i).value;
+				}
+			}
+
+			const zooms = document.getElementsByName("zoom");
+			len = zooms.length;
+			for(let i=0; i<len; i++){
+				if(zooms.item(i).checked){
+					zoom = zooms.item(i).value;
+				}
+			}
+
+			const ary = [[20,21,25],[60,60,60]];
+			const dep = document.getElementById("dep");
+			depAngle = ary[view][zoom];
+			dep.innerHTML = `Camera depression angle: ${depAngle}`;
+
+			moveAngle = cameraAngle - calc()*180/Math.PI;
+			if(moveAngle < -180){
+				moveAngle += 360;
+			}
+			if(moveAngle > 180){
+				moveAngle -= 360;
+			}
+			const gap = document.getElementById("gap");
+			gap.innerHTML = `Difference between pad input and movement direction: ${moveAngle}`;
+		}
+		function calc(){
+			let xx = Math.cos(cameraAngle*Math.PI/180);
+			let yy = Math.sin(cameraAngle*Math.PI/180);
+			let coeff = Math.cos(depAngle*Math.PI/180);
+			let angle_ = Math.atan2(yy*coeff,xx);
+			return angle_;
+		}
+	</script>
+</body>
+
+</html>
