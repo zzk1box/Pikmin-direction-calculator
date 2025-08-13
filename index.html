@@ -16,11 +16,31 @@
 			top: 0px;
 			z-index: 2;
 		}
+		.figs{
+			display: flex;
+			align-items: center;
+		}
+		.my-table th,
+		.my-table td{
+			border: 1px solid #999;
+			text-align: center;
+		}
 	</style>
+	<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 
 <body>
 	<h1>Pikmin direction calculator</h1>
+	<div class="figs">
+		<img src="fig2.png" width="160px">
+		<img src="fig1.png" height="130px">
+	</div>
+	<br>
+	\(\theta:\) Camera depression angle
+	<br>
+	\(\phi:\) Camera direction angle
+	<br>
+	<br>
 	<b>View</b>
 	<label><input type="radio" name="view" value=0 onclick="clicked();" checked>Quarter</label>
 	<label><input type="radio" name="view" value=1 onclick="clicked();">Top</label>
@@ -30,24 +50,80 @@
 	<label><input type="radio" name="zoom" value=1 onclick="clicked();" checked>Normal</label>
 	<label><input type="radio" name="zoom" value=2 onclick="clicked();">Far</label>
 	<br>
-	<div id="dep">Camera depression angle: 21</div>
-	<br>
-	<b>Camera direction</b>
+	\(\theta=\) <span id="dep">21</span>
+	<br><br>
+	\(\phi=\)
     <input id="input" value="0" oninput="editChanged()">
 	<input id="slide" type="range" value="0" max="180" min="-180" step="0.1" oninput="sliderChanged()">
 	<br><br>
-	<div id="gap">Difference between pad input and movement direction: 0</div>
-
-	<br><br>
-
 	<img id="pink" src="direct_transparent.png">
-	<br><br><br>
+	<br><br>
+	\(\Delta\phi=\phi-\mathrm{atan2}(\sin\phi\cos\theta,\cos\phi)=\) <span id="gap">0</span>
+	<br>
+	\(\Delta\phi:\) Difference between pad input and movement direction
+	<br><br>
 	<div class="relative">
 		<img id="gray" src="gray_transparent.png" class="relative">
 		<img id="blue" src="blue_transparent.png" class="absolute">
 	</div>
-	<h2>Reference</h2>
-	<a href="https://pikmintkb.com/wiki/Pikmin_camera_parameters">Pikmin camera parameters - Pikmin Technical Knowledge Base</a>
+	<br><br>
+
+
+
+	<h2>ピクミンにおけるスティック入力方向と移動方向のずれについて</h2>
+	<p>
+		ゲーム画面上でキャラクターを違和感なく操作するためには、マップ上で現在カメラが向いている方角を知る必要がある。<br>
+		たとえばスティックが右に入力されているときは、「カメラが向いている方角」+「時計回りに90°」の向きにキャラクターが動いていれば、<br>
+		画面上でもキャラクターが右に動いているように見える。
+	</p>
+	<img src="fig3.png" width="180px">
+	<p>
+		上図のようにマップの北向きを \(x\) 方向、西向きを \(y\) 方向と定義し、カメラの方角ベクトルを \((x,y)\) で表すとき、<br>
+		カメラの方角 \(\phi\) は
+		\[\phi=\mathrm{atan2}(y,x)\tag{1}\]
+		で計算できる。<br>
+	</p>
+	<p>
+		しかしピクミンのゲームにおける以下の場面では、おそらく<font color="red"> \(\phi\) の計算が間違っている</font>。<br>
+		<ul>
+			<li>オリマーの移動（GC、Wii）</li>
+			<li>カーソルの移動（GC）</li>
+			<li>Cスティックの隊列移動（GC）</li>
+		</ul>
+		具体的には、カメラの俯角 \(\theta\) がなぜか計算に含まれていて、
+		\[\phi_\mathrm{w}=\mathrm{atan2}(y\cos\theta,x)\tag{2}\]
+		という計算式になっていると思われる。<br>
+		(式\((1)\)の \(\phi\) と区別するため \(\phi_\mathrm{w}\) とした)
+	</p>
+	<p>
+		\(\theta\) が0°に近いときは \(\cos\theta\) が1に近いので影響は少ないが、<br>
+		\(\theta\) が大きくなるにつれ、\(\phi\) と \(\phi_\mathrm{w}\) の間のずれも大きくなっていく。<br>
+		\(\theta\) は斜め視点のときはズーム段階によって20°、21°、25°と変化し、真上視点のときは60°固定である。(GC版の場合)<br>
+	</p>
+	<table class="my-table">
+		<tr><th>視点</th><th>ズーム</th><th>俯角 \(\theta\)</th><th>\(\cos\theta\)</th></tr>
+		<tr><td rowspan="3">斜め</td><td>近</td><td>20°</td><td>0.9397</td></tr>
+		<tr><td>中</td><td>21°</td><td>0.9336</td></tr>
+		<tr><td>遠</td><td>25°</td><td>0.9063</td></tr>
+		<tr><td>真上</td><td>すべて</td><td>60°</td><td>0.5000</td></tr>
+	</table>
+	<p>
+		真上視点のときは \(\cos\theta=0.5\) であり、<br>
+		\(y\) 方向、つまり東西方向成分が半分に縮小されてしまう。<br>
+		このため、スティック入力時の挙動が、全体的に南北方向に傾いてしまう。
+	</p>
+	<p>
+		式\((1),(2)\)から \(x,y\) を消去すると、
+		\[\phi_\mathrm{w}=\mathrm{atan2}(\sin\phi\cos\theta,\cos\phi)\tag{3}\]
+		となる。よって、スティック入力時にカメラの方角が \(\phi\) であるとき、本来向くべき角度と実際に向く角度の差 \(\Delta\phi\) は、
+		\[\Delta\phi=\phi-\mathrm{atan2}(\sin\phi\cos\theta,\cos\phi)\tag{4}\]
+		となる。<br>
+		\(\phi\) はレーダー画面の方角記号の向きによって確認できる。（要きまぐれなレーダー）
+	</p>
+	<h2>参考文献</h2>
+	<a href="https://pikmintkb.com/wiki/Pikmin_camera_parameters" target="_blank" rel="noopener noreferrer">Pikmin camera parameters - Pikmin Technical Knowledge Base</a>
+
+
 
 	<!-- 実際に表示される領域 -->
 	<script>
@@ -104,7 +180,7 @@
 			const ary = [[20,21,25],[60,60,60]];
 			const dep = document.getElementById("dep");
 			depAngle = ary[view][zoom];
-			dep.innerHTML = `Camera depression angle: ${depAngle}`;
+			dep.innerHTML = `${depAngle}`;
 
 			moveAngle = cameraAngle - calc()*180/Math.PI;
 			if(moveAngle < -180){
@@ -114,7 +190,7 @@
 				moveAngle -= 360;
 			}
 			const gap = document.getElementById("gap");
-			gap.innerHTML = `Difference between pad input and movement direction: ${moveAngle}`;
+			gap.innerHTML = `${moveAngle}`;
 		}
 		function calc(){
 			let xx = Math.cos(cameraAngle*Math.PI/180);
