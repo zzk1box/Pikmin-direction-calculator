@@ -78,27 +78,22 @@
 	</p>
 	<img src="fig3.png" width="180px">
 	<p>
-		上図のようにマップの北向きを \(x\) 方向、西向きを \(y\) 方向と定義し、カメラの方角ベクトルを \((x,y)\) で表すとき、<br>
+		上図のようにマップの北向きを \(x\) 方向、西向きを \(y\) 方向と定義し、カメラの方向ベクトルの水平成分を \((x,y)\) で表すとき、<br>
 		カメラの方角 \(\phi\) は
 		\[\phi=\mathrm{atan2}(y,x)\tag{1}\]
 		で計算できる。<br>
 	</p>
 	<p>
-		しかしピクミンのゲームにおける以下の場面では、おそらく<font color="red"> \(\phi\) の計算が間違っている</font>。<br>
-		<ul>
-			<li>オリマーの移動（GC、Wii）</li>
-			<li>カーソルの移動（GC）</li>
-			<li>Cスティックの隊列移動（GC）</li>
-		</ul>
+		しかしピクミンのゲームにおける特定の場面では、おそらく<font color="red"> \(\phi\) の計算が間違っている</font>。<br>
 		具体的には、カメラの俯角 \(\theta\) がなぜか計算に含まれていて、
 		\[\phi_\mathrm{w}=\mathrm{atan2}(y\cos\theta,x)\tag{2}\]
-		という計算式になっていると思われる。<br>
+		という計算式になっているのではないかと思われる。<br>
 		(式\((1)\)の \(\phi\) と区別するため \(\phi_\mathrm{w}\) とした)
 	</p>
 	<p>
 		\(\theta\) が0°に近いときは \(\cos\theta\) が1に近いので影響は少ないが、<br>
 		\(\theta\) が大きくなるにつれ、\(\phi\) と \(\phi_\mathrm{w}\) の間のずれも大きくなっていく。<br>
-		\(\theta\) は斜め視点のときはズーム段階によって20°、21°、25°と変化し、真上視点のときは60°固定である。(GC版の場合)<br>
+		\(\theta\) は斜め視点のときはズーム段階によって20°、21°、25°と変化し、真上視点のときは60°固定である。<br>
 	</p>
 	<table class="my-table">
 		<tr><th>視点</th><th>ズーム</th><th>俯角 \(\theta\)</th><th>\(\cos\theta\)</th></tr>
@@ -108,7 +103,7 @@
 		<tr><td>真上</td><td>すべて</td><td>60°</td><td>0.5000</td></tr>
 	</table>
 	<p>
-		真上視点のときは \(\cos\theta=0.5\) であり、<br>
+		真上視点のときは \(\cos\theta=\) 0.5であり、<br>
 		\(y\) 方向、つまり東西方向成分が半分に縮小されてしまう。<br>
 		このため、スティック入力時の挙動が、全体的に南北方向に傾いてしまう。
 	</p>
@@ -120,9 +115,20 @@
 		となる。<br>
 		\(\phi\) はレーダー画面の方角記号の向きによって確認できる。（要きまぐれなレーダー）
 	</p>
+	<h2>影響する場面</h2>
+	<ul>
+		<li>オリマーの移動（GC、Wii）</li>
+		<li>カーソルの移動（GC）</li>
+		<li>Cスティックの隊列移動（GC）</li>
+	</ul>
+	Wii版では壁の裏側にいるとカメラが自動で真上に移動するが、そのときも俯角 \(\theta\) が増加するので、ずれ \(\Delta\phi\) も大きくなる。<br>
+	<br>
+	Switch版も真上視点だとずれるという情報はあるが、同一原理かどうかは未確認。
 	<h2>参考文献</h2>
+	<a href="https://youtu.be/PaphqhaCAXE" target="_blank" rel="noopener noreferrer">ピクミン　スティック入力時の移動方向とカメラ角度の関係 - YouTube</a><br>
 	<a href="https://pikmintkb.com/wiki/Pikmin_camera_parameters" target="_blank" rel="noopener noreferrer">Pikmin camera parameters - Pikmin Technical Knowledge Base</a>
 
+	<br><br>2025-08-14
 
 
 	<!-- 実際に表示される領域 -->
